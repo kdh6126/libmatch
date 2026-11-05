@@ -1,0 +1,50 @@
+﻿cff-version: 1.2.0
+title: >-
+  libmatch: code and result tables for "Library size and sequence
+  relatedness confound comparisons between synthetic benchmarks and
+  experimental antibody data"
+message: >-
+  If you use this software or the result tables, please cite both the software
+  and the article it accompanies.
+type: software
+authors:
+  - given-names: Dohun
+    family-names: Kim
+    email: dohun@etri.re.kr
+    affiliation: >-
+      Autonomous Intelligence DX Research Section, Electronics and
+      Telecommunications Research Institute
+  - given-names: Minho
+    family-names: Bae
+    affiliation: >-
+      Autonomous Intelligence DX Research Section, Electronics and
+      Telecommunications Research Institute
+abstract: >-
+  libmatch measures five properties of a sequence-label dataset - size,
+  structure, alignability, label origin and measurement noise - and reports
+  which of them differ between two datasets being compared. The repository also
+  holds the scripts, result tables and matched libraries behind the article,
+  with a generated reproduction map from every reported number to the script
+  that produced it.
+keywords:
+  - antibody
+  - machine learning
+  - benchmark
+  - dataset comparability
+  - reproducibility
+  - protein engineering
+license: MIT
+version: 1.0.4
+repository-code: https://github.com/kdh6126/libmatch
+preferred-citation:
+  type: article
+  title: >-
+    Library size and sequence relatedness confound comparisons between
+    synthetic benchmarks and experimental antibody data
+  authors:
+    - given-names: Dohun
+      family-names: Kim
+      email: dohun@etri.re.kr
+    - given-names: Minho
+      family-names: Bae
+  year: 2026

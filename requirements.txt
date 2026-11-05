@@ -1,0 +1,18 @@
+# Verified to install and run on Python 3.14.7 / Windows-11-10.0.26200-SP0.
+# Later Python releases may lack wheels for these exact pins.
+# The environment that produced the results used these CUDA builds:
+#   torch==2.11.0+cu128
+# They install from <https://download.pytorch.org/whl/cu128>, not PyPI.
+# Nothing reported in the article needs a GPU; the CPU wheels pinned below
+# reproduce every number.
+
+numpy==2.5.2
+pandas==3.0.5
+scipy==1.18.1
+scikit-learn==1.9.0
+torch==2.11.0
+matplotlib==3.11.1
+pyarrow==25.0.1
+fair-esm==2.0.0
+biopython==1.88
+pillow==12.3.0

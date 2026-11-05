@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "libmatch"
+version = "0.1.0"
+description = "Check whether two sequence-label datasets differ only as intended"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+keywords = ["benchmark", "protein", "antibody", "machine-learning",
+            "deep-mutational-scanning", "dataset-comparison"]
+authors = [{ name = "Dohun Kim", email = "dohun@etri.re.kr" }]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = [
+    "numpy>=1.21",
+    "pandas>=1.3",
+]
+
+[project.optional-dependencies]
+curve = ["scipy>=1.7", "scikit-learn>=1.0"]
+parquet = ["pyarrow>=7"]
+
+# [project.urls] is deliberately absent until the repository exists. A
+# placeholder URL here would ship in the package metadata and on PyPI, where it
+# would be a dead link; an omitted section is valid and adds nothing to fix
+# later beyond pasting it back in:
+#
+#   [project.urls]
+#   Homepage = "https://github.com/<owner>/libmatch"
+#   Issues = "https://github.com/<owner>/libmatch/issues"
+
+[project.scripts]
+libmatch = "libmatch:main"
+
+[tool.setuptools]
+py-modules = ["libmatch"]

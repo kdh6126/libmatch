@@ -1,0 +1,2 @@
+dataset,n,len_min,len_max,alignable,structure,n_varying,median_mutations,replicates,noise_to_signal,label_sd,usable_train_max
+matched_2DD8_S.csv,6000,17,17,True,mutational neighbourhood,15,2.0,0,0.0,7.224496737044929,4500

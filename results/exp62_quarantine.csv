@@ -1,0 +1,5 @@
+antigen,pdb,gate,reason,native
+1QFW_AB,1QFW,chain,중쇄 후보가 둘 이상: I:CARQGTAAQPYWYFDVW / H:CARRYGNSFDYW,
+1TQB_A,1TQB,chain,"중쇄는 있으나 보존 Cys가 없음 (FR4@102, 앞 12잔기 TATYFFTRGTDY)",
+4KI5_M,4KI5,chain,중쇄 후보가 둘 이상: E:CTRTSYYFGSSYDFDVW / C:CAREDDGLASW,
+4N9G_C,4N9G,fulltable,관문1 아카이브 읽기 실패 — BadZipFile · 크기·md5는 서버 값과 일치하므로 서버 원본이 손상된 것이고 재전송으로 복구되지 않는다,CARDAIVMVFTDMRGRVDVW

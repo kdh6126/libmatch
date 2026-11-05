@@ -1,0 +1,5 @@
+n_train,rho,lo,hi,best_lattice,best_measured,same_best,n_models
+200,0.964,0.929,0.964,ridge_esm+onehot,ridge_esm+onehot,True,7
+500,0.786,0.786,0.786,cnn_maxpool,ridge_esm+onehot,False,7
+1000,0.75,0.571,0.75,cnn_maxpool,ridge_esm+onehot,False,7
+2000,0.643,0.536,0.75,cnn_maxpool,ridge_esm+onehot,False,7

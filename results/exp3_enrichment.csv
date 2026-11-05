@@ -1,0 +1,13 @@
+chain,task,spearman,top100_at_500,random_top100_at_500,auroc,auprc
+VH,A_early_rounds,0.85,0.97,0.076,0.992,0.947
+VH,A0_baseline_last_early_round,0.803,0.98,0.076,0.997,0.93
+VH,B_sequence_only,0.072,0.47,0.076,0.811,0.241
+VH,B0_permutation_null,0.019,0.11,0.076,0.455,0.008
+VH,B1_length_only,-0.008,0.03,0.076,0.394,0.006
+VH,C_sequence_plus_rounds,0.861,0.97,0.076,0.996,0.944
+VL,A_early_rounds,0.871,0.98,0.087,0.992,0.91
+VL,A0_baseline_last_early_round,0.84,0.99,0.087,0.995,0.924
+VL,B_sequence_only,0.132,0.31,0.087,0.757,0.27
+VL,B0_permutation_null,-0.005,0.15,0.087,0.639,0.016
+VL,B1_length_only,0.016,0.13,0.087,0.549,0.01
+VL,C_sequence_plus_rounds,0.876,0.97,0.087,0.991,0.907

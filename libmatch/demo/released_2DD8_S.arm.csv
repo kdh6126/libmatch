@@ -1,0 +1,2 @@
+dataset,n,len_min,len_max,alignable,structure,n_varying,median_mutations,replicates,noise_to_signal,label_sd,usable_train_max
+released_2DD8_S.csv,30000,11,40,False,unrelated set,,,0,0.0,6.2694112235813915,22500

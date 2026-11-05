@@ -1,0 +1,23 @@
+arm,strategy,seeds,reached,median,lo,hi,domain
+matched:1NCA_N,active,20,20,290.4,281.9,309.9,matched lattice
+matched:2Q8A_A,active,20,20,292.0,279.9,301.4,matched lattice
+matched:1ZTX_E,active,20,20,293.9,288.4,311.9,matched lattice
+matched:1OSP_O,active,20,20,317.6,306.0,336.2,matched lattice
+matched:1ADQ_A,active,20,20,366.1,354.2,391.4,matched lattice
+matched:3VRL_C,active,20,20,369.6,314.2,425.7,matched lattice
+matched:2DD8_S,active,20,18,500.0,463.2,645.2,matched lattice
+real:HER2,active,20,18,798.6,735.1,902.1,measured
+real:TIGIT,active,20,8,951.6,886.6,956.1,measured
+real:CoV2-RBD,active,20,0,,,,measured
+real:PD-1,active,20,0,,,,measured
+matched:1ADQ_A,random,20,0,,,,matched lattice
+matched:1NCA_N,random,20,0,,,,matched lattice
+matched:1OSP_O,random,20,0,,,,matched lattice
+matched:1ZTX_E,random,20,0,,,,matched lattice
+matched:2DD8_S,random,20,0,,,,matched lattice
+matched:2Q8A_A,random,20,0,,,,matched lattice
+matched:3VRL_C,random,20,0,,,,matched lattice
+real:CoV2-RBD,random,20,0,,,,measured
+real:HER2,random,20,0,,,,measured
+real:PD-1,random,20,0,,,,measured
+real:TIGIT,random,20,0,,,,measured

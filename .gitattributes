@@ -1,0 +1,4 @@
+# CHECKSUMS.txt lists the sha256 of every file in this bundle. Git must not
+# rewrite line endings on checkout, or none of those digests will verify on
+# a platform whose convention differs from ours.
+* -text
