@@ -23,9 +23,13 @@ abstract: >-
   libmatch measures five properties of a sequence-label dataset - size,
   structure, alignability, label origin and measurement noise - and reports
   which of them differ between two datasets being compared. The repository also
-  holds the scripts, result tables and matched libraries behind the article,
-  with a generated reproduction map from every reported number to the script
-  that produced it.
+  holds the scripts and result tables behind the article, with a generated
+  reproduction map from every reported number to the script that produced it.
+  The matched libraries themselves are not redistributed, because their labels
+  are energies computed with Absolut!, whose non-commercial licence grants no
+  onward distribution right; their specifications and sha256 digests are
+  included instead, with the script that rebuilds them from a reader's own
+  licensed download.
 keywords:
   - antibody
   - machine learning
@@ -34,7 +38,7 @@ keywords:
   - reproducibility
   - protein engineering
 license: MIT
-version: 1.0.4
+version: 1.0.5
 repository-code: https://github.com/kdh6126/libmatch
 preferred-citation:
   type: article

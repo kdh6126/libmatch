@@ -32,11 +32,11 @@ is generated from the source, so it cannot drift from the code.
 | | |
 |---|---|
 | `libmatch/` | the tool: five-property measurement, demo, regression test |
-| `src/` | the 70 scripts the article depends on, of 258 in the working repository |
+| `src/` | the 69 scripts the article depends on, of 258 in the working repository |
 | `results/` | 57 result tables — every reported number reads from one of these |
-| `data/absolut/` | 15 matched libraries, including the quarantined one |
+| `data/absolut/` | no data: the specification and sha256 of each of the 15 matched libraries, and the command that rebuilds them |
 | `manuscript/` | LaTeX sources and the 11 figures they include |
-| `CHECKSUMS.txt` | sha256 of all 172 files |
+| `CHECKSUMS.txt` | sha256 of all 162 files |
 
 ## Checking it without the oracle
 
