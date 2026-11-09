@@ -59,14 +59,16 @@ CASES = [
     dict(name="ProteinGym RASH_HUMAN_Bandaru_2017 vs matched lattice",
          a="proteingym_RASH_HUMAN_Bandaru_2017.csv", b="matched_2DD8_S.arm.csv", b_arm=True,
          wt_a="proteingym_RASH_HUMAN_Bandaru_2017.wt.txt",
+         # noise 는 일치가 아니라 비교 불가다. 이 어세이는 한 변이당 한
+         # 점수로 배포되어 복제 퍼짐이 파일에 남아 있지 않다.
          expect=dict(size=LM.MATCH, structure=LM.MATCH,
-                     dimension=LM.MISMATCH, noise=LM.MATCH,
+                     dimension=LM.MISMATCH, noise=LM.UNAVAILABLE,
                      budget=LM.MATCH)),
     dict(name="ProteinGym TPK1_HUMAN_Weile_2017 vs matched lattice",
          a="proteingym_TPK1_HUMAN_Weile_2017.csv", b="matched_2DD8_S.arm.csv", b_arm=True,
          wt_a="proteingym_TPK1_HUMAN_Weile_2017.wt.txt",
          expect=dict(size=LM.MATCH, structure=LM.MATCH,
-                     dimension=LM.MISMATCH, noise=LM.MATCH,
+                     dimension=LM.MISMATCH, noise=LM.UNAVAILABLE,
                      budget=LM.MATCH)),
 ]
 
@@ -155,11 +157,14 @@ def main():
     for i, c in enumerate(CASES, 1):
         got, wrong, cmp_df = run_case(c, args.verbose)
         n_mis = int((cmp_df.status == LM.MISMATCH).sum())
+        n_na = int((cmp_df.status == LM.UNAVAILABLE).sum())
         mark = "ok  " if not wrong else "FAIL"
         print(f"{mark} {i}. {c['name']}")
-        print(f"       {n_mis}/5 mismatched  "
-              + "  ".join(f"{k}={'X' if v == LM.MISMATCH else '.'}"
-                          for k, v in got.items()))
+        # 기호가 둘뿐이면 잴 수 없었던 축이 "." 로 찍혀 일치처럼 보인다.
+        sym = {LM.MATCH: ".", LM.MISMATCH: "X", LM.UNAVAILABLE: "?"}
+        tail = f", {n_na} not comparable" if n_na else ""
+        print(f"       {n_mis}/5 mismatched{tail}  "
+              + "  ".join(f"{k}={sym.get(v, '?')}" for k, v in got.items()))
         for axis, (want, have) in wrong.items():
             print(f"       {axis}: expected {want}, got {have}")
             bad += 1

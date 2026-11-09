@@ -50,6 +50,9 @@ import sys
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.dirname(HERE))
+import libmatch as LM  # noqa: E402
+
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 ALPHASEQ = os.path.join(ROOT, "data", "alphaseq", "YM_1068.parquet")
 ABSOLUT = os.path.join(ROOT, "data", "absolut")
@@ -67,11 +70,23 @@ def build_alphaseq():
                          "label": d.alphaseq_affinity.astype(float).values})
 
 
-def build_matched():
+def build_matched_arm():
+    """요약 한 줄만 낸다. 서열과 에너지는 내지 않는다.
+
+    예전에는 이 자리에서 matched_2DD8_S.csv 를 그대로 썼다. 그 파일은
+    Absolut! 에너지를 담고 있어 재배포가 허락되지 않으므로 2025-11-05 에
+    꾸러미에서 빠졌는데, 이 빌더는 그대로 남아 --write 를 한 번 돌리면
+    되살아났다. 다섯 축이 쓰는 것은 서열이 아니라 요약값이므로 처음부터
+    요약값만 만든다.
+    """
     p = os.path.join(ABSOLUT, f"matched_{ANTIGEN}.parquet")
     d = pd.read_parquet(p)
-    return pd.DataFrame({"sequence": d.cdr3.astype(str).values,
-                         "label": d.energy.astype(float).values})
+    t = pd.DataFrame({"sequence": d.cdr3.astype(str).values,
+                      "label": d.energy.astype(float).values})
+    # 격자 에너지는 다시 계산해도 같은 값이다. 복제 퍼짐이 0 이라는 뜻이고,
+    # 재지 못했다는 뜻이 아니므로 그렇게 선언해 둔다.
+    arm = LM.describe(t, f"matched_{ANTIGEN}.csv", deterministic=True)
+    return pd.DataFrame([LM.arm_to_row(arm)])[LM.CAT_COLS]
 
 
 # released_2DD8_S.csv is not rebuilt here. It is a 30,000-row sample of the
@@ -85,7 +100,16 @@ def build_matched():
 # nothing to rebuild.
 
 BUILDERS = {"alphaseq_measured.csv": build_alphaseq,
-            "matched_2DD8_S.csv": build_matched}
+            "matched_2DD8_S.arm.csv": build_matched_arm}
+
+
+def _close(x, y):
+    if pd.isna(x) and pd.isna(y):
+        return True
+    try:
+        return abs(float(x) - float(y)) < 1e-9
+    except (TypeError, ValueError):
+        return str(x) == str(y)
 
 
 def digest(path):
@@ -125,9 +149,16 @@ def main():
             print(f"  MISSING {name}")
             continue
         have = pd.read_csv(dest)
-        same = (len(have) == len(built)
-                and (have.sequence.values == built.sequence.values).all()
-                and bool((have.label - built.label).abs().max() < 1e-9))
+        if name.endswith(".arm.csv"):
+            # 요약행은 서열이 없다. 열끼리 견준다.
+            same = (list(have.columns) == list(built.columns)
+                    and len(have) == len(built) == 1
+                    and all(_close(have.iloc[0][c], built.iloc[0][c])
+                            for c in built.columns))
+        else:
+            same = (len(have) == len(built)
+                    and (have.sequence.values == built.sequence.values).all()
+                    and bool((have.label - built.label).abs().max() < 1e-9))
         print(f"  {'ok  ' if same else 'DIFF'} {name}  {len(have):,} rows  "
               f"sha256:{digest(dest)}")
     return 0

@@ -20,9 +20,10 @@ authors:
       Autonomous Intelligence DX Research Section, Electronics and
       Telecommunications Research Institute
 abstract: >-
-  libmatch measures five properties of a sequence-label dataset - size,
-  structure, alignability, label origin and measurement noise - and reports
-  which of them differ between two datasets being compared. The repository also
+  libmatch measures five operational axes of a sequence-label dataset -
+  size, structure, dimension, measurement noise and training budget - and
+  reports which of them differ between two datasets being compared, or
+  cannot be measured from the data as released. The repository also
   holds the scripts and result tables behind the article, with a generated
   reproduction map from every reported number to the script that produced it.
   The matched libraries themselves are not redistributed, because their labels
@@ -38,7 +39,7 @@ keywords:
   - reproducibility
   - protein engineering
 license: MIT
-version: 1.0.5
+version: 1.0.6
 repository-code: https://github.com/kdh6126/libmatch
 preferred-citation:
   type: article

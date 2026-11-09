@@ -23,7 +23,7 @@
 
 % 플로트가 전부 뒤로 밀리는 것을 막는다. 기본값은 쪽 높이의 70%보다 큰
 % 그림을 본문 쪽 위에 올리지 못하고, 한 번 밀리면 뒤의 그림이 번호 순서를
-% 지키느라 함께 밀려 전부 끝으로 간다. Figure 1 이 네 띠라 그 문턱에
+% 지키느라 함께 밀려 전부 끝으로 간다. Figure 1 이 두 띠라 그 문턱에
 % 걸렸다.
 \setcounter{topnumber}{3}
 \setcounter{bottomnumber}{2}
@@ -145,6 +145,28 @@ binds which antigen, and propose a protocol for future comparisons.
 
 \begin{figure}[t]
 \centering
+\includegraphics[width=\textwidth]{figs/F11.png}
+\caption{The design of the comparison, and what it decides.
+\textbf{(a)}, the five properties on which a synthetic benchmark and a
+measured dataset differ at once, and the three arms compared here. The middle
+arm is built in this work: for each of seven lattice antigens, a parent is
+chosen and 6{,}000 variants of it are scored by the same Absolut! binary, so
+the arm takes library size, sequence structure and alignability from the
+measured datasets while its labels remain lattice energies. Each row is
+shaded across the two arms that share a value, which is the whole of the
+design: label source and the absence of assay noise are deliberately
+\emph{not} matched, so that the middle arm differs from the synthetic arm only
+in the three properties that were matched, and no difference between those two
+arms can be attributed to the synthetic label. Each antigen is one independent
+unit; replicate splits and seeds quantify uncertainty within an antigen, never
+across them. \textbf{(b)}, the four differences in results that appear when
+the arms are compared as they stand, and the verdict on each once size,
+structure and alignability are matched; the same four are set out with their
+intervals in Table~\ref{tab:effects}.}\label{fig:overview}
+\end{figure}
+
+\begin{figure}[t]
+\centering
 \includegraphics[width=\textwidth]{figs/F9.png}
 \caption{What the oracle computes, and where the two libraries sit on it.
 \textbf{(a)}, the antigen used throughout (2DD8\_S, SARS-CoV spike RBD, 192
@@ -171,7 +193,8 @@ measured side we used AlphaSeq affinities for four targets (anti-SARS-CoV-2
 VHH72, anti-TIGIT, anti-PD-1 and anti-HER2), comprising 707{,}713 measurements
 \cite{engelhart2022}.
 
-The two collections differ in five ways at once. Labels are lattice energies
+The two collections differ in five ways at once
+(Fig.~\ref{fig:overview}a). Labels are lattice energies
 versus $\log_{10} K_D$; library sizes are $6.9\times10^{6}$ versus
 $2$--$3.5\times10^{4}$; the synthetic library is a set of unrelated sequences
 whereas the measured libraries are mutational neighbourhoods of one parent;
@@ -180,10 +203,13 @@ are alignable on the measured side; and only the measured data carry assay
 noise, which we quantified as $\sigma = 0.27$ in $\log_{10} K_D$ from 100
 replicate measurements of the wild-type parent.
 
+
 \subsection*{Four differences appear when conditions are not matched}
 
-Compared as they stand, the two collections differ in four ways
-(Table~\ref{tab:effects}).
+The five differences just listed are properties of the libraries. Compared
+as they stand, those properties produce four differences in results
+(Fig.~\ref{fig:overview}b and Table~\ref{tab:effects}), which the rest of this
+subsection takes in turn.
 
 \begin{table}[htbp]
 \caption{The four differences that appear when the synthetic and measured
@@ -245,13 +271,18 @@ energy function.
 \subsection*{Two of the four disappear, one is unmeasurable, and one narrows}
 
 We then rebuilt the synthetic library to match the structure of the measured
-ones (Supplementary Figure~S2), taking a strong binder of length 17 as the
-parent (\texttt{CARDRLLWLRLWYFDVW} for SARS-CoV spike RBD) and enumerating all
-285 single mutants plus random doubles and triples to reach 6{,}000 sequences,
-the recipe used to build the AlphaSeq libraries. Seven libraries built this way
-pass the consistency check described in Methods and are used throughout. Every
-sequence was scored with the same binary, so the labels remain lattice energies
-from the same oracle and only library size and structure change.
+ones (Supplementary Figure~S2). This was done independently for seven
+antigens, and all seven matched libraries pass the consistency check described
+in Methods and carry every comparison reported below; the antigen, not the
+split, is the independent unit throughout. The recipe is the one used to build
+the AlphaSeq libraries: a strong binder of length 17 is taken as the parent,
+all 285 single mutants at the varying positions are enumerated, and random
+doubles and triples are added to reach 6{,}000 sequences. For SARS-CoV spike
+RBD the parent is \texttt{CARDRLLWLRLWYFDVW}; every parent is recoverable
+from its library as the most frequent residue at each position, and the
+archived package \cite{libmatch2026} carries the code that does so. Every sequence was scored with the same binary, so
+the labels remain lattice energies from the same oracle and only library size
+and structure change.
 
 Two differences resolved, one proved unmeasurable, and the fourth narrowed
 without closing (Table~\ref{tab:effects}).
@@ -368,7 +399,10 @@ neither guided strategy improved on random sampling in either regime, a floor
 below which the surrogate carries no information.
 
 \textbf{Measurement noise alone costs 0.105 in Spearman.} Adding Gaussian noise
-matched to the measured noise-to-signal ratio (0.424) to the matched lattice
+matched to the measured noise-to-signal ratio (0.424)
+(\texttt{src/exp6\_lattice\_vs\_real.py} in the archived package
+\cite{libmatch2026}, where the injected standard deviation and the ratio it is
+matched to are constants at the head of the file) to the matched lattice
 labels reduced Spearman by 0.095 to 0.116 across training-set sizes. Because
 this comparison is made within one dataset with structure held fixed, it is not
 subject to the confound above.
@@ -618,7 +652,14 @@ excluded because only 5.1\% of its reads carried a recognisable CDR3.
 The Absolut! source was compiled from the public repository; on Windows the
 binary crashed while processing structure files, so all scoring was performed
 under Linux. Precomputed structures were downloaded per antigen and the
-interaction profiles regenerated locally. Matched libraries
+interaction profiles regenerated locally by the Absolut! binary itself, which
+writes them on first use for an antigen; we did not reimplement that step.
+Every call we make to the binary goes through one wrapper, the
+\texttt{AbsolutOracle} class in \texttt{src/exp56\_vopal\_search.py}, which
+raises on a non-zero exit so that a failed run cannot be mistaken for a
+completed one. Supplementary Methods gives the procedure, and the archived
+package \cite{libmatch2026} gives the wrapper, the per-antigen commands and
+the environment the binary was run in. Matched libraries
 were built by selecting a parent CDRH3 of length 17 among the lowest-energy for
 that antigen, enumerating all 285 single mutants at the 15 non-terminal
 positions, and adding deduplicated random double and triple mutants, drawn
@@ -668,9 +709,24 @@ taken per varying position thereafter, as whole-sequence pooling averages away
 the few positions that distinguish members of a mutational library.
 
 Ridge regularisation was set to $\alpha = 1$ for one-hot features and
-$\alpha = 50$ for the higher-dimensional embedding features, values chosen once
-on a held-out fold of a single target and then held fixed for every experiment
-reported here, so that no comparison benefits from per-arm tuning. The
+$\alpha = 50$ for the higher-dimensional embedding features. Both are
+constants in the code (\texttt{src/model\_zoo.py} in the archived package
+\cite{libmatch2026}) rather than quantities selected per run. They were not
+tuned separately for antigens, label budgets, splits or random seeds: no
+hold-out set is used to choose them in any experiment reported here, and the
+same two representation-specific values apply to every arm of every
+comparison. The reported analyses therefore compare fixed
+representation-specific pipelines rather than pipelines separately optimised
+for each dataset.
+
+Because fixed penalties invite the question of whether those two values
+produced the result, we repeated the representation comparison over a log
+grid around each of them, fixed before the results were seen and not used to
+re-select either (Supplementary Table~S21). One-hot is best at its own fixed
+value at every budget, and the language model is slightly better at a penalty
+below its fixed one at 200 labels, so neither value was chosen to favour the
+conclusion; the language model leads in all seven libraries at the two
+budgets where we claim it does, across the grid. The
 convolutional network used a 32-dimensional embedding, 96 channels, and a fixed
 budget of approximately 4{,}000 gradient steps at batch size 128, with targets
 standardised to zero mean and unit variance; this budget rather than a fixed
@@ -681,7 +737,15 @@ and a minimum leaf size of two.
 \subsection*{Evaluation}
 
 Training-set sizes of 200 to 20{,}000 were drawn from a held-out permutation
-with 1{,}500--5{,}000 sequences reserved for testing. Exploratory sweeps used
+with 1{,}500--5{,}000 sequences reserved for testing. The splits are not
+shipped as files because they are generated from explicit seeds and are
+therefore reproducible from the code: split $s$ is
+\texttt{numpy.random.default\_rng(1000 + s).permutation(n)}, with $s$ running
+from 0 to 19, in \texttt{src/exp21\_seed\_expansion.py} for the representation
+comparison and \texttt{src/exp71\_repr\_many\_antigens.py} for its extension to
+every antigen. Both scripts, their input tables and the command that runs each
+are in the archived package \cite{libmatch2026}, whose reproduction map links
+every reported number to the script and table behind it. Exploratory sweeps used
 three to five splits; every comparison on which a claim rests was then repeated
 at twenty splits for the representation question and twelve for the
 architecture question, and the matched and unmatched arms of the representation
@@ -702,9 +766,17 @@ and the convolutional network reranked its top 200{,}000. Three strategies were
 compared at equal budget: uniform random sampling; a single-shot strategy that
 spends an initial quarter of the budget at random, fits once and selects the
 remainder; and active learning, which spends the remaining budget over three
-rounds with 20\% held for exploration. We report recovery of the top 0.01\% or
-top 1\% depending on library size, the best value found, and the gap to the
-library optimum.
+rounds with 20\% held for exploration. Which top fraction we report follows from library size and is fixed in code
+rather than chosen per result: for the released library of $6.9\times10^{6}$
+sequences, the top 0.01\% (691 sequences, \texttt{src/exp2\_search.py}); for
+the 6{,}000-sequence matched libraries, the top 1\% (60 sequences,
+\texttt{src/exp20\_matched\_search.py} and
+\texttt{src/exp72\_search\_seeds.py}). A smaller fraction of the released
+library would be recovered too rarely to measure, and 0.01\% of a matched
+library is less than one sequence. We also report the best value found and the
+gap to the library optimum. Seeds follow an explicit rule throughout: run $s$
+at budget $b$ uses \texttt{numpy.random.default\_rng(97s + b)}, so the five
+seeds of the first pass are contained in the twenty of the second.
 
 \subsection*{Statistics}
 
@@ -785,7 +857,7 @@ measurements
 campaign measurements (\url{https://github.com/A-Alpha-Bio/alphabind}); the
 c-Met panning reads deposited under BioProject PRJNA607865. The analysis
 outputs generated in this work are archived at Zenodo
-(\url{https://doi.org/ZENODO-DOI-PENDING}): the per-experiment result tables
+\cite{libmatch2026} (\url{https://doi.org/10.5281/zenodo.23990810}): the per-experiment result tables
 from which every figure and every quantity in the text is computed, together
 with a map linking each number to the table and the script behind it.
 
@@ -799,8 +871,8 @@ download. The energies are deterministic and the sequence sets are drawn from
 fixed seeds, so the digests establish whether a rebuild is identical to the
 file we used. The same applies to the quarantined first version of the
 1NCA\_N library compared in Supplementary Table~S10.
-\item \textbf{Code availability.} All custom code is archived at Zenodo
-(\url{https://doi.org/ZENODO-DOI-PENDING}) under the MIT licence and
+\item \textbf{Code availability.} All custom code is archived at Zenodo \cite{libmatch2026}
+(\url{https://doi.org/10.5281/zenodo.23990810}) under the MIT licence and
 developed at \url{https://github.com/kdh6126/libmatch}: the 69 scripts on
 which the reported analyses depend, found by dependency closure from the
 figure and table generators rather than selected by hand, and the tool that
@@ -978,6 +1050,12 @@ Scandinavian Journal of Statistics \textbf{6}, 65--70 (1979)
 Benjamini, Y., Hochberg, Y.: Controlling the false discovery rate: a practical
 and powerful approach to multiple testing. Journal of the Royal Statistical
 Society: Series B \textbf{57}, 289--300 (1995)
+
+\bibitem{libmatch2026}
+Kim, D., Bae, M.: libmatch: code and result tables for ``Library size and
+sequence relatedness confound comparisons between synthetic benchmarks and
+experimental antibody data'' (v1.0.5). Zenodo (2026).
+\url{https://doi.org/10.5281/zenodo.23990810}
 
 \end{thebibliography}
 

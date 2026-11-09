@@ -6,16 +6,20 @@ Code, result tables and reproduction map for
 > synthetic benchmarks and experimental antibody data**
 > Dohun Kim, Minho Bae — Electronics and Telecommunications Research Institute
 
-and for `libmatch`, the tool that measures the five properties the article
-uses to decide whether two sequence–label datasets are comparable.
+and for `libmatch`, the tool that measures five operational axes of a
+sequence–label dataset — size, structure, dimension, measurement noise and
+training budget — and reports which of them differ between two datasets, or
+cannot be measured from the data as released.
 
 ## What the article claims, and what is here to check it
 
-A synthetic benchmark and a measured dataset usually differ on several axes at
-once — size, structure, alignability, label origin, measurement noise — so a
-performance gap between them cannot be attributed to any one of those. The
-article builds matched libraries that hold four of the five axes fixed and
-re-measures four reported discrepancies under matching.
+A synthetic benchmark and a measured dataset usually differ in several ways at
+once — label origin, size, structure, alignability and measurement noise — so a
+performance gap between them cannot be attributed to any one of those. These are
+properties of the libraries, and are not the same list as the five operational
+axes `libmatch` measures from a file. The article builds matched libraries that
+hold four of the five properties fixed and re-measures four reported
+discrepancies under matching.
 
 Two of the four disappear, a third proves unmeasurable, and the fourth narrows
 by three orders of magnitude without closing. That last result is the one to

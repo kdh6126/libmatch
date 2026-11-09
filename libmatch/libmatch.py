@@ -19,7 +19,9 @@ Five axes are measured.
   size        number of sequences
   structure   variants around one parent, or a set of unrelated sequences
   dimension   number of positions that vary (where the set can be aligned)
-  noise       noise-to-signal ratio, where replicate measurements exist
+  noise       noise-to-signal ratio, where replicate measurements exist;
+              reported as not measured where they do not, which is not the
+              same as reporting it as zero
   budget      the range of training sizes available
 
 The third is the one most often missed. Matching size and structure leaves the
@@ -266,8 +268,18 @@ def concentration(seqs, ref, rng=None):
     return obs, null, (obs - null) / (1.0 - null)
 
 
-def describe(d, name, concentration_cut=0.6, holdout_frac=0.25):
-    """Measure the five properties of one arm."""
+def describe(d, name, concentration_cut=0.6, holdout_frac=0.25,
+             deterministic=None):
+    """Measure the five properties of one arm.
+
+    ``deterministic`` says what one label per sequence means for this table.
+    A computed oracle returns one value because recomputing would return the
+    same value, so its replicate spread is zero; a measured assay distributed
+    one score per variant looks identical here but its spread was averaged
+    away before the file was written. Nothing in the table distinguishes
+    them, so the caller declares it. Left undeclared, the noise axis is
+    reported as not measured rather than as zero.
+    """
     seqs = d.sequence.tolist()
     y = d.label.to_numpy(float)
     lens = pd.Series([len(s) for s in seqs])
@@ -333,17 +345,23 @@ def describe(d, name, concentration_cut=0.6, holdout_frac=0.25):
     elif rep.max() > 1:
         notes.append(f"only {n_rep} sequences occur more than once, too few "
                      f"to estimate noise")
-    else:
-        # Every sequence appearing exactly once means there are no replicate
-        # measurements. Deterministic oracles -- lattice simulations and the
-        # like -- look like this. Their noise is not unknown, it is zero, and
-        # conflating the two would leave this axis blank in precisely the
-        # comparison against measured data that the axis exists for.
+    elif deterministic:
+        # A lattice simulation and the like. Recomputing returns the same
+        # number, so the spread is not unknown, it is zero.
         noise_sd, nts = 0.0, 0.0
-        notes.append("each sequence is measured once; treated as a "
-                     "deterministic label with noise 0 -- if replicates exist "
-                     "but were averaged away, measure this on the raw data "
-                     "instead")
+        notes.append("labels declared deterministic, so one value per "
+                     "sequence means a replicate spread of zero")
+    else:
+        # A measured assay whose replicates were averaged away before release
+        # looks exactly like the deterministic case from here, and its noise
+        # is not zero -- it is unrecoverable. Undeclared, the honest report is
+        # that the axis was not measured. ``noise_sd`` and ``nts`` stay None.
+        notes.append("each sequence appears once and the labels are not "
+                     "declared deterministic, so replicate spread cannot be "
+                     "estimated; declare the labels deterministic "
+                     "(deterministic=True, or --deterministic) for a "
+                     "computed oracle, or measure noise on the raw "
+                     "replicates")
 
     return Arm(name=name, n=len(d), lengths=(uniq[0], uniq[-1]),
                alignable=alignable, structure=structure, parent=parent,
@@ -358,15 +376,21 @@ def describe(d, name, concentration_cut=0.6, holdout_frac=0.25):
 
 MISMATCH = "mismatched"
 MATCH = "matched"
+# 세 번째 판정. "두 쪽이 다르다" 도 "두 쪽이 같다" 도 아닌, "이 축은 이
+# 자료로는 물을 수 없다" 는 뜻이다. 상태를 둘로만 두면 물을 수 없는 축이
+# 반드시 둘 중 하나로 접히고, 접히는 쪽은 대개 "같다" 다 -- 아무것도 재지
+# 않았다는 사실이 일치했다는 주장으로 바뀐다.
+UNAVAILABLE = "unavailable"
 
 
 def compare(a: Arm, b: Arm):
     """Judge each axis mismatched or not. Never says which side is correct."""
     rows = []
 
-    def add(axis, va, vb, mismatch, why=""):
+    def add(axis, va, vb, mismatch, why="", status=None):
         rows.append(dict(axis=axis, a=va, b=vb,
-                         status=MISMATCH if mismatch else MATCH, note=why))
+                         status=status or (MISMATCH if mismatch else MATCH),
+                         note=why))
 
     ratio = max(a.n, b.n) / max(1, min(a.n, b.n))
     add("size", f"{a.n:,}", f"{b.n:,}", ratio >= 2,
@@ -388,9 +412,16 @@ def compare(a: Arm, b: Arm):
             f"{r:.1f}x apart" if r >= 1.5 else "")
 
     if a.noise_to_signal is None or b.noise_to_signal is None:
+        # Not a mismatch. A mismatch is a difference that was measured, and
+        # nothing was measured here; counting it as one would let a question
+        # that was never asked swell the tally of axes that differ.
+        both = a.noise_to_signal is None and b.noise_to_signal is None
+        who = ("neither side has replicate measurements" if both else
+               f"{(a if a.noise_to_signal is None else b).name} has no "
+               f"replicate measurements")
         add("noise", _fmt(a.noise_to_signal, "{:.3f}"),
-            _fmt(b.noise_to_signal, "{:.3f}"), True,
-            "one side has no replicates, so the axis is not comparable")
+            _fmt(b.noise_to_signal, "{:.3f}"), False,
+            f"{who}, so the axis cannot be compared", status=UNAVAILABLE)
     else:
         d = abs(a.noise_to_signal - b.noise_to_signal)
         add("noise", f"{a.noise_to_signal:.3f}", f"{b.noise_to_signal:.3f}",
@@ -543,16 +574,30 @@ def distance(a: Arm, b: Arm):
     return float(d)
 
 
+def _stem(name):
+    """확장자를 뗀 이름. 표적이 자기 자신과 견주는 것을 막는 데만 쓴다.
+
+    카탈로그는 'GLPA_HUMAN_Elazar_2016' 처럼 확장자 없이 적힌 것도 있고
+    'alphaseq_measured.csv' 처럼 붙여 적힌 것도 있다. 이름을 글자 그대로
+    견주면 두 관례가 섞인 순간 표적이 후보 목록 맨 위에 거리 0.00 으로
+    자기 자신을 올린다 -- 가장 잘 맞는 대조가 자기 자신이라는 답은 아무것도
+    말해 주지 않는다.
+    """
+    return os.path.splitext(str(name))[0]
+
+
 def match(target: Arm, cat, top=10):
     """카탈로그에서 표적에 가장 정합인 데이터셋을 고른다."""
     rows = []
     for _, r in cat.iterrows():
-        if str(r["dataset"]) == target.name:
+        if _stem(r["dataset"]) == _stem(target.name):
             continue
         other = arm_from_row(r)
         cmp_df = compare(target, other)
         rows.append({"dataset": other.name,
                      "mismatched": int((cmp_df.status == MISMATCH).sum()),
+                     "unavailable": int(
+                         (cmp_df.status == UNAVAILABLE).sum()),
                      "distance": round(distance(target, other), 3),
                      **{x.axis: x.status for _, x in cmp_df.iterrows()}})
     d = pd.DataFrame(rows)
@@ -576,19 +621,25 @@ def render_match(target: Arm, d, cat_n, top):
              "  ".join(f"{x[:4]:<4}" for x in AXIS_ORDER))
     for _, r in d.iterrows():
         marks = "  ".join(
-            f"{('.' if r[x] == MATCH else 'X'):<4}" for x in AXIS_ORDER)
+            f"{({MATCH: '.', MISMATCH: 'X'}.get(r[x], '?')):<4}"
+            for x in AXIS_ORDER)
         L.append(f"  {r.dataset:<{w}}  {r.mismatched}/5  "
                  f"{r.distance:>4.2f}  {marks}")
     best = d.iloc[0]
-    L += ["", f"'.' means the axis is shared, 'X' that it is not. The ranking "
-              f"is by",
+    L += ["", f"'.' means the axis is shared, 'X' that it is not, '?' that "
+              f"it could",
+          "not be measured on these two. The ranking is by",
           "number of mismatched axes first and by how far apart the "
           "comparable",
           "axes are second, so a dataset at the top differs from the target "
           "in",
           "the fewest ways that would confound a comparison."]
-    if best.mismatched == 0:
+    if best.mismatched == 0 and not best.get("unavailable", 0):
         L += ["", f"{best.dataset} matches the target on all five axes."]
+    elif best.mismatched == 0:
+        L += ["", f"{best.dataset} differs on no measured axis, but "
+                  f"{best.unavailable} of the five",
+              "could not be compared on these two datasets."]
     else:
         L += ["", f"No catalogued dataset matches on all five; the closest, "
                   f"{best.dataset},",
@@ -616,7 +667,11 @@ def render(a: Arm, b: Arm, cmp_df, curves=None):
         L.append(line)
 
     bad = cmp_df[cmp_df.status == MISMATCH]
-    L += ["", f"{len(bad)} of {len(cmp_df)} axes mismatched"]
+    na = cmp_df[cmp_df.status == UNAVAILABLE]
+    tally = f"{len(bad)} of {len(cmp_df)} axes mismatched"
+    if len(na):
+        tally += f", {len(na)} not comparable ({', '.join(na.axis)})"
+    L += ["", tally]
     if len(bad):
         L += ["",
               "The two datasets differ on these axes at the same time. Any",
@@ -625,6 +680,13 @@ def render(a: Arm, b: Arm, cmp_df, curves=None):
               "unless",
               "the report states which axis was intended and which were",
               "controlled."]
+    elif len(na):
+        L += ["",
+              "No axis was measured to differ, but the axes named above "
+              "could",
+              "not be compared at all. An axis that was never measured is "
+              "not",
+              "an axis that agrees, so this is not yet a clean comparison."]
     else:
         L += ["",
               "All five axes match. A difference observed between these two",
@@ -698,6 +760,17 @@ def main(argv=None):
                    help="file holding the wild-type sequence (FASTA or plain)")
     p.add_argument("--wt-file-b", default=None,
                    help="file holding B's wild-type sequence")
+    # describe() 는 라벨이 계산값인지 호출자가 선언하게 되어 있고, 선언이
+    # 없으면 잡음 축을 0 이 아니라 "재지 못함" 으로 적는다. 그 선언이
+    # 파이썬 API 에만 있어서, 명령줄로 쓰는 사람은 격자 오라클을 아무리
+    # 돌려도 잡음을 적을 수 없었다 -- 문서가 권하는 길이 막혀 있었다.
+    p.add_argument("--deterministic", action="store_true",
+                   help="A 의 라벨은 계산값이다: 다시 계산해도 같은 값이 "
+                        "나오므로 복제 퍼짐이 0 이다. 실측 어세이에는 쓰지 "
+                        "말 것 -- 한 변이당 한 점수로 배포되었다는 것은 "
+                        "퍼짐이 0 이라는 뜻이 아니다")
+    p.add_argument("--deterministic-b", action="store_true",
+                   help="B 의 라벨이 계산값일 때. 'report' 에서만 쓴다")
     p.add_argument("--curve", action="store_true",
                    help="also fit learning curves (slow)")
     p.add_argument("--sizes", nargs="*", type=int,
@@ -720,7 +793,8 @@ def main(argv=None):
         rows = []
         for p_ in paths:
             d = read_table(p_, a.seq_col, a.label_col, wt)
-            rows.append(arm_to_row(describe(d, os.path.basename(p_))))
+            rows.append(arm_to_row(describe(d, os.path.basename(p_),
+                                deterministic=a.deterministic)))
             print(f"  {rows[-1]['dataset']}: {rows[-1]['n']:,} sequences, "
                   f"{rows[-1]['structure']}, "
                   f"{rows[-1]['n_varying']} varying positions")
@@ -741,7 +815,8 @@ def main(argv=None):
             raise SystemExit(f"{a.catalogue}: not a catalogue, missing "
                              f"{', '.join(missing)}")
         d = read_table(a.a, a.seq_col, a.label_col, wt)
-        target = describe(d, os.path.basename(a.a))
+        target = describe(d, os.path.basename(a.a),
+                          deterministic=a.deterministic)
         hits = match(target, cat, a.top)
         print(render_match(target, hits, len(cat), a.top))
         if a.json:
@@ -756,8 +831,10 @@ def main(argv=None):
         raise SystemExit("'report' needs two tables.")
     da = read_table(a.a, a.seq_col, a.label_col, wt)
     db = read_table(a.b, a.seq_col, a.label_col, wt_b)
-    A = describe(da, os.path.basename(a.a))
-    B = describe(db, os.path.basename(a.b))
+    A = describe(da, os.path.basename(a.a),
+                 deterministic=a.deterministic)
+    B = describe(db, os.path.basename(a.b),
+                 deterministic=a.deterministic_b)
     cmp_df = compare(A, B)
 
     curves = None
@@ -781,7 +858,9 @@ def main(argv=None):
         with open(a.json, "w", encoding="utf-8") as fh:
             json.dump(blob, fh, ensure_ascii=False, indent=2)
         print(f"wrote {a.json}")
-    return 1 if (cmp_df.status == MISMATCH).any() else 0
+    # 0 은 "다섯 축을 다 재었고 다 맞다" 는 뜻이어야 한다. 재지 못한 축을
+    # 통과로 세면 물어보지 않은 질문이 합격 판정이 된다.
+    return 0 if (cmp_df.status == MATCH).all() else 1
 
 
 if __name__ == "__main__":

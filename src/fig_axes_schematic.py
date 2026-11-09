@@ -45,12 +45,36 @@ BANDS = {"a": (72.0, 22.0), "b": (50.5, 19.0),
 YMAX = 95.0
 PG = "results/proteingym_five_axes.csv"
 
+# libmatch 의 세 판정. 문자열을 그대로 쓴다 -- 그림이 도구와 다른 어휘를
+# 쓰면 둘이 어긋났을 때 알아챌 방법이 없다.
+DIFF, SAME, NONE = "mismatched", "matched", "unavailable"
+
 PAIRS_FALLBACK = [
-    ("Matched vs released lattice", [1, 1, 1, 0, 1]),
-    ("Measured vs matched lattice", [1, 0, 1, 1, 1]),
-    ("ProteinGym RASH vs matched", [0, 0, 1, 0, 0]),
-    ("ProteinGym TPK1 vs matched", [0, 0, 1, 0, 0]),
+    ("Matched vs released lattice", [DIFF, DIFF, DIFF, SAME, DIFF]),
+    ("Measured vs matched lattice", [DIFF, SAME, DIFF, DIFF, DIFF]),
+    ("ProteinGym RASH vs matched", [SAME, SAME, DIFF, NONE, SAME]),
+    ("ProteinGym TPK1 vs matched", [SAME, SAME, DIFF, NONE, SAME]),
 ]
+
+
+def mark(ax, x, y, st, r=0.95):
+    """한 칸의 판정을 그린다.
+
+    기호가 둘뿐이면 "재지 못했다" 가 반드시 둘 중 하나로 접히고, 접히는
+    쪽은 빈 원 -- 즉 "두 쪽이 일치한다" 다. 아무것도 재지 않았다는 사실이
+    일치했다는 주장으로 바뀌므로 세 번째 기호를 따로 둔다.
+    """
+    if st == DIFF:
+        ax.add_patch(plt.Circle((x, y), r, facecolor=VERM, edgecolor=VERM,
+                                lw=0.8, zorder=3))
+    elif st == SAME:
+        ax.add_patch(plt.Circle((x, y), r, facecolor=WHITE, edgecolor=MUTED,
+                                lw=0.8, zorder=3))
+    else:
+        ax.add_patch(plt.Circle((x, y), r, facecolor=PANEL, edgecolor=MUTED,
+                                lw=0.8, linestyle=(0, (1.6, 1.3)), zorder=3))
+        ax.plot([x - 0.52, x + 0.52], [y, y], color=MUTED, lw=1.0, zorder=4,
+                solid_capstyle="round")
 
 
 def verdicts():
@@ -62,8 +86,7 @@ def verdicts():
         rows = []
         for name, _sub, a, b in T.PAIRS:
             cmp_df, _A, _B = T.run(a, b)
-            d = {r.axis: (1 if r.status == LM.MISMATCH else 0)
-                 for _, r in cmp_df.iterrows()}
+            d = {r.axis: str(r.status) for _, r in cmp_df.iterrows()}
             rows.append((name, [d[k] for k, _ in AXES]))
         return rows
     except Exception as e:                                   # noqa: BLE001
@@ -94,7 +117,7 @@ def main():
     ax.axis("off")
 
     # ---------------------------------------------------------------- (a)
-    y, h = band(ax, "a", "The five properties a comparison has to hold fixed")
+    y, h = band(ax, "a", "Five operational axes measured by libmatch")
     x0, w, gap = 5.0, 17.0, 2.0
     box_y, box_h = y + 8.0, 9.0
     for i, (key, sub) in enumerate(AXES):
@@ -148,23 +171,30 @@ def main():
     # ---------------------------------------------------------------- (c)
     y, h = band(ax, "c", "What it reports for four pairs")
     cx0, cw = 48.0, 9.6
-    head_y = y + h - 4.8
+    head_y = y + h - 4.2
     for j, (key, _) in enumerate(AXES):
         ax.text(cx0 + j * cw + cw / 2, head_y, key, fontsize=6.0,
                 ha="center", va="center", color=MUTED, zorder=3)
     for i, (name, marks) in enumerate(rows):
-        ry = head_y - 3.2 - i * 2.7
+        ry = head_y - 3.2 - i * 2.45
         ax.text(4.5, ry, name, fontsize=6.1, ha="left", va="center",
                 color=INK, zorder=3)
-        for j, bad in enumerate(marks):
-            ax.add_patch(plt.Circle((cx0 + j * cw + cw / 2, ry), 0.95,
-                                    facecolor=VERM if bad else WHITE,
-                                    edgecolor=VERM if bad else MUTED,
-                                    lw=0.8, zorder=3))
-    ax.text(50, y + 1.4,
-            "filled, the two sides differ on that property; open, they agree. "
-            "The last two pairs contain no antibody data.",
-            fontsize=5.9, ha="center", va="center", color=MUTED, zorder=3)
+        for j, st in enumerate(marks):
+            mark(ax, cx0 + j * cw + cw / 2, ry, st)
+    leg_y = y + 3.9
+    for lx, st, lab in ((17.0, DIFF, "the two sides differ"),
+                        (38.0, SAME, "the two sides agree"),
+                        (59.0, NONE, "the axis was not measured")):
+        mark(ax, lx, leg_y, st, r=0.80)
+        ax.text(lx + 1.5, leg_y, lab, fontsize=5.9, ha="left", va="center",
+                color=MUTED, zorder=3)
+    # 왜 재지 못했는가는 캡션이 말한다. 여기서는 한 줄만 둔다 -- 범례와
+    # 마지막 행 사이에 들어갈 자리가 그만큼뿐이다.
+    note = ("The last two pairs carry one score per variant, so their "
+            "replicate spread cannot be recovered; they contain no "
+            "antibody data.")
+    ax.text(50, y + 1.5, note, fontsize=5.9, ha="center", va="center",
+            color=MUTED, zorder=3)
 
     # ---------------------------------------------------------------- (d)
     y, h = band(ax, "d", "Where the compared libraries sit among 217 "
@@ -222,7 +252,10 @@ def main():
     plt.close(fig)
     print(f"wrote {p}")
     for name, marks in rows:
-        print(f"  {name:<34} {sum(marks)}/5 어긋남")
+        n_d = sum(1 for m in marks if m == DIFF)
+        n_n = sum(1 for m in marks if m == NONE)
+        print(f"  {name:<34} {n_d}/5 어긋남"
+              + (f" · {n_n} 비교불가" if n_n else ""))
 
 
 if __name__ == "__main__":

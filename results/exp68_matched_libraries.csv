@@ -3,6 +3,6 @@ antigen,parent,n_len17,released_energy,rescored_energy,parent_gap,n_common,max_d
 1NCA_N,CAREFDLFGLLLLFDYW,748021,-122.35,-122.35,1.525878900565658e-06,1,1.525878900565658e-06,6000,-131.3,-96.74,130.3,ok,
 1OSP_O,CARFLLLLRFNWYFDVW,748021,-115.79,-115.79,9.15527337497224e-07,1,9.15527337497224e-07,6000,-119.84,-92.65,138.4,ok,
 1ZTX_E,CAYLLWLELFFYYFDYW,748065,-114.47,-114.47,1.2207031261368684e-06,1,1.2207031261368684e-06,6000,-118.34,-91.38,21.1,ok,
-2DD8_S,CARDRLLWLRLWYFDVW,748021,-125.07,-125.07,3.0517577442878974e-07,1,3.0517577442878974e-07,6000,-128.69,-91.02,57.2,ok,기존 라이브러리(발표된 모항체). 이 실행이 규칙대로 새로 만든 판은 쓰지 않는다.
+2DD8_S,CARDRLLWLRLWYFDVW,748021,-121.84,-121.84,3.662109378410605e-06,1,3.662109378410605e-06,6000,-126.52,-92.1,0.0,ok,"library built around the published parent antibody, which the length-17 minimum-energy rule used for the other antigens does not return (it ranks fourth); the library was kept as built. The three energy columns were corrected from the discarded rule-selected candidate to this parent: the energy is the one the library file records, and the gap is its disagreement with the published table as measured by exp75."
 2Q8A_A,CAYLLWLELFFYYFDYW,748021,-118.27,-118.27,3.3569335897709607e-06,1,3.3569335897709607e-06,6000,-125.56,-94.18,185.8,ok,
 3VRL_C,CARPENLLLLLWYFDVW,748021,-112.82,-112.82,3.0517577442878974e-07,1,3.0517577442878974e-07,6000,-115.44,-81.13,19.2,ok,

@@ -30,6 +30,7 @@ ORDER = [
     "rescore check",            # S17 (Methods 에서 인용)
     "pair sensitivity",         # S18, S19 (표 두 개)
     "zoo transfer",             # S20
+    "alpha sensitivity",        # S21 (Methods 에서 인용)
 ]
 
 

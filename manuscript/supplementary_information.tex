@@ -137,7 +137,7 @@ each. Each has the size and the mutational structure of a measured dataset
 while its labels still come from the lattice oracle; the Absolut! binary scores
 every sequence, so the oracle, the antigen and the scoring function are
 identical to those used for the released library, and the two dock into the
-same pocket (Figure 1 of the main text).}\label{fig:matched}
+same pocket (Figure 2 of the main text).}\label{fig:matched}
 \end{figure}
 
 \begin{figure}[t]
@@ -340,16 +340,30 @@ what any comparison drawn from released files can establish.
 \centering
 \includegraphics[width=\textwidth]{figs/F0.png}
 \caption{What separates a benchmark from the data it stands in for.
-\textbf{(a)}, the five properties. A synthetic benchmark and a measured
-dataset usually differ on several at once, which is what makes a difference
-measured between them unattributable to any one of them. \textbf{(b)}, the
+\textbf{(a)}, the five operational axes the tool measures. A synthetic
+benchmark and a measured dataset usually differ on several at once, which is
+what makes a difference measured between them unattributable to any one of
+them. These operational axes are distinct from the five dataset attributes in
+Figure~1 of the main text; in particular, dimension and budget operationalise
+alignability and evaluability, while label source is a property of how a
+dataset was made rather than one countable from the file it is released as. \textbf{(b)}, the
 tool reads two tables of sequences and labels and reports which of the five
 differ and by how much; an axis that differs is a rival explanation for
 whatever the comparison finds. \textbf{(c)}, its verdict for four pairs,
 ordered by distance from the data it was built on. A filled circle marks an
-axis the two sides differ on. The last two pairs are deep mutational scans of
-non-antibody proteins, distributed as mutation notation and expanded against
-the wild type; the dimension axis is mismatched in all four. \textbf{(d)},
+axis the two sides differ on, an open circle one they share, and a dashed
+circle one the tool could not measure on those two datasets. The third is not
+the second: an axis that was never measured is not an axis that agrees, and
+reporting it as agreement would turn a question that was not asked into a
+finding. The last two pairs are deep mutational scans of non-antibody
+proteins, distributed as mutation notation and expanded against the wild type;
+the dimension axis is mismatched in all four, and the noise axis is measurable
+in neither. A lattice energy is computed, so repeating it returns the same
+value and its replicate spread is zero; a measured assay released with one
+score per variant is indistinguishable from that in the file, but its spread
+was averaged away before release. The tool is therefore told which kind of
+label it is reading, and reports the axis as not measured where it is not
+told. \textbf{(d)},
 the same properties measured over the 217 substitution assays of ProteinGym,
 with the two libraries compared here marked. Sizes and budgets place the
 matched library near the middle of that distribution and only the number of
@@ -821,7 +835,7 @@ Antigen & Arm & Sequences & Home percentile & rank01 & In top 10\% & Within-arm 
 \end{table}
 
 \begin{table}[h]
-\caption{Provenance of every library used in the sensitivity test. The hash and modification time identify exactly which file produced each arm, and the last two columns repeat the oracle checks for the matched libraries: the parent energy must agree with the published table because the same binary, antigen and scoring function produced both, and a further 340 published sequences per antigen were rescored. One of these antigens, 1NCA\_N, had a first library that was quarantined after a scoring run wrote output while failing; the version used here is the rebuilt one, and the quarantined file is retained separately so the two can be compared (Supplementary Table~S10). Hashes are given for all antigens rather than for that one alone, so that the record does not single it out. Weak-arm libraries carry no oracle-agreement entry because they are not matched libraries: their parents were selected from the published energy distribution and their members scored fresh, so no published energy exists to compare them against.}
+\caption{Provenance of every library used in the sensitivity test. The hash and modification time identify exactly which file produced each arm, and the last two columns repeat the oracle checks for the matched libraries: the parent energy must agree with the published table because the same binary, antigen and scoring function produced both, and a further 340 published sequences per antigen were rescored. Both columns are read from the rescoring run rather than from the build log, and the parent gap is the disagreement for the sequence each library was actually built around. For 2DD8\_S that sequence is the published parent antibody, which is not the sequence the selection rule used for the other antigens returns: among the 748{,}021 length-17 sequences scored against that antigen it ranks fourth rather than first. The library was built before the rule was written and was kept as it stood, so that the results reported for that antigen continue to refer to the file that produced them. One of these antigens, 1NCA\_N, had a first library that was quarantined after a scoring run wrote output while failing; the version used here is the rebuilt one, and the quarantined file is retained separately so the two can be compared (Supplementary Table~S10). Hashes are given for all antigens rather than for that one alone, so that the record does not single it out. Weak-arm libraries carry no oracle-agreement entry because they are not matched libraries: their parents were selected from the published energy distribution and their members scored fresh, so no published energy exists to compare them against.}
 \centering
 \begin{tabular}{@{}llrlrr@{}}
 \toprule
@@ -835,7 +849,7 @@ Antigen & Arm & Sequences & SHA-256 (first 16) & Parent gap & Rescore max \\
 1OSP\_O & weak & 300 & \texttt{b7db4263e6bddd00} & --- & --- \\
 1ZTX\_E & strong & 6,000 & \texttt{2dd9bee11027720c} & 1.2e-06 & 3.7e-06 \\
 1ZTX\_E & weak & 300 & \texttt{a1a2603670501000} & --- & --- \\
-2DD8\_S & strong & 6,000 & \texttt{49cf34d25ed9a149} & 3.1e-07 & 3.7e-06 \\
+2DD8\_S & strong & 6,000 & \texttt{49cf34d25ed9a149} & 3.7e-06 & 3.7e-06 \\
 2DD8\_S & weak & 300 & \texttt{0081e2043a6bb8bf} & --- & --- \\
 3VRL\_C & strong & 6,000 & \texttt{8f905a28b7d5bb68} & 3.1e-07 & 3.7e-06 \\
 3VRL\_C & weak & 300 & \texttt{951adb107c1b3590} & --- & --- \\
@@ -859,5 +873,25 @@ Training size & Rank correlation & Best on lattice & Best on measured & Same \\
 \end{tabular}
 \end{table}
 % ---- END zoo transfer
+% ---- BEGIN alpha sensitivity (generated)
+\begin{table}[h]
+\caption{Whether the fixed ridge penalties produced the representation result. The penalties are constants in the code ($\alpha = 1$ for one-hot, $\alpha = 50$ for ESM-2) and are not tuned for antigens, label budgets, splits or seeds, so there is no selection procedure to report; what can be reported is whether the two values favoured the conclusion. The independent unit is the antigen: each cell is the held-out Spearman correlation averaged over the 7 matched libraries and 20 splits, with the splits, held-out size, training sizes and seeds identical to those used throughout---only the penalty changes. This grid is a sensitivity analysis and nothing more: it was fixed before the results were seen, and no penalty in any reported analysis was re-selected or replaced from it. One-hot is best at its own fixed value at every budget, so that value did not handicap it; ESM-2 is slightly better at $\alpha = 5$ than at its fixed 50 at 200 labels, so the fixed value understates its advantage where that advantage is largest. The last column counts the libraries in which ESM-2 leads at the fixed penalties: all 14 of 14 at the two budgets where the article makes the claim, falling to a tie as the budget grows, which is the decay the article reports. At the largest ESM-2 penalty examined, performance declined and the direction of the comparison could reverse; at the largest one-hot penalty examined the decline is larger still. Absolute penalties are not comparable between the two representations, whose feature scales differ, so each row is read within a representation rather than across them.}
+\label{tab:alpha}
+\centering
+\vspace{4pt}
+\begin{tabular}{@{}lrrrrrrrr@{}}
+\toprule
+& \multicolumn{4}{c}{One-hot} & \multicolumn{3}{c}{ESM-2} & \\
+Labels & $\alpha=0.1$ & $\alpha=1$ & $\alpha=10$ & $\alpha=100$ & $\alpha=5$ & $\alpha=50$ & $\alpha=500$ & ESM-2 ahead \\
+\midrule
+200 & 0.756 & 0.790 & 0.746 & 0.696 & 0.850 & 0.841 & 0.781 & 7/7 \\
+500 & 0.847 & 0.870 & 0.816 & 0.735 & 0.884 & 0.884 & 0.820 & 7/7 \\
+1,000 & 0.902 & 0.905 & 0.865 & 0.760 & 0.909 & 0.907 & 0.848 & 4/7 \\
+2,000 & 0.922 & 0.923 & 0.902 & 0.791 & 0.925 & 0.921 & 0.875 & 2/7 \\
+4,000 & 0.931 & 0.931 & 0.924 & 0.832 & 0.933 & 0.930 & 0.900 & 1/7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+% ---- END alpha sensitivity
 
 \end{document}

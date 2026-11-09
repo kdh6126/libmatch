@@ -70,6 +70,45 @@ def digest(path):
     return h.hexdigest()
 
 
+E75D = "results/exp75_rescore_detail.csv"
+
+
+def parent_gap(ag, lib, e68):
+    """모항체가 공개 표와 맞는지. exp68 의 저장값을 믿지 않고 다시 구한다.
+
+    exp68 의 2DD8_S 행은 오래된 값을 들고 있었다. 그 라이브러리는 발표된
+    모항체로 지었는데, 규칙(길이 17 중 최저 에너지)이 고르는 서열은 다른
+    것이고, 행이 쓰인 시점에는 규칙판이 돌고 있었다. parent 열만 뒤늦게
+    고쳐졌고 에너지 세 칸은 버려진 후보의 것으로 남았다 -- 표에는 3.1e-07
+    이 실렸지만, 그것은 라이브러리의 모항체에 대한 수치가 아니었다.
+
+    고친 값을 다시 적어 두는 것으로는 같은 일이 또 일어난다. 그래서 여기서
+    권위 있는 두 자리에서 다시 구한다: 라이브러리 파일이 그 서열에 대해
+    적어 둔 에너지와, exp75 가 공개 표와 대조해 둔 차이. exp68 이 이와
+    어긋나면 소리 내어 알린다.
+    """
+    if ag not in e68.index:
+        return float("nan")
+    par = str(e68.loc[ag, "parent"])
+    r = lib.loc[lib.cdr3 == par, "energy"]
+    if r.empty:
+        print(f"  [주의] {ag}: 라이브러리에 모항체 {par} 가 없습니다")
+        return float("nan")
+    e_lib = float(r.iloc[0])
+    stale = float(e68.loc[ag, "rescored_energy"])
+    if abs(e_lib - stale) > 1e-3:
+        print(f"  [주의] {ag}: exp68 이 적은 모항체 에너지 {stale:.2f} 는 "
+              f"라이브러리의 {e_lib:.2f} 와 다릅니다. 저장값 대신 "
+              f"exp75 의 재채점 결과를 씁니다.")
+    if os.path.exists(E75D):
+        d = pd.read_csv(E75D)
+        m = d[(d.antigen == ag) & (d.cdr3 == par)]
+        if len(m):
+            return float(m.absdiff.iloc[0])
+    print(f"  [주의] {ag}: exp75 에 모항체 {par} 의 재채점이 없습니다")
+    return float("nan")
+
+
 def provenance(antigens):
     """팔마다 쓴 라이브러리의 해시·생성 시각·오라클 대조값."""
     e68 = pd.read_csv(E68).set_index("antigen")
@@ -87,8 +126,7 @@ def provenance(antigens):
                 mtime=datetime.datetime.fromtimestamp(
                     os.path.getmtime(p)).strftime("%Y-%m-%d %H:%M"),
                 e_min=float(d.energy.min()), e_max=float(d.energy.max()),
-                parent_gap=(float(e68.loc[ag, "parent_gap"])
-                            if arm == "strong" and ag in e68.index
+                parent_gap=(parent_gap(ag, d, e68) if arm == "strong"
                             else np.nan),
                 rescore_max=(float(e75.loc[ag, "max_diff"])
                              if arm == "strong" and ag in e75.index
@@ -166,7 +204,16 @@ def table_tex():
           "matched libraries: the parent energy must agree with the published "
           "table because the same binary, antigen and scoring function "
           "produced both, and a further 340 published sequences per antigen "
-          "were rescored. One of these antigens, 1NCA\\_N, had a first library "
+          "were rescored. Both columns are read from the rescoring run rather "
+          "than from the build log, and the parent gap is the disagreement "
+          "for the sequence each library was actually built around. For "
+          "2DD8\\_S that sequence is the published parent antibody, which is "
+          "not the sequence the selection rule used for the other antigens "
+          "returns: among the 748{,}021 length-17 sequences scored against "
+          "that antigen it ranks fourth rather than first. The library was "
+          "built before the rule was written and was kept as it stood, so "
+          "that the results reported for that antigen continue to refer to "
+          "the file that produced them. One of these antigens, 1NCA\\_N, had a first library "
           "that was quarantined after a scoring run wrote output while "
           "failing; the version used here is the rebuilt one, and the "
           "quarantined file is retained separately so the two can be compared "

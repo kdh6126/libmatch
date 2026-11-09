@@ -21,18 +21,22 @@ MARK_A = "% ---- BEGIN libmatch table (generated)"
 MARK_B = "% ---- END libmatch table"
 D = "libmatch/demo"
 
+# Absolut! 쪽은 서열이 아니라 저장해 둔 요약 한 줄로 되살린다. 다섯 축이
+# 쓰는 것은 서열이 아니라 그로부터 센 값이므로 판정은 같고, 그 쪽의 라이선스는
+# 서열의 재배포를 허락하지 않는다.
 PAIRS = [
     ("Matched vs released lattice", "same antigen, two recipes",
-     ("matched_2DD8_S.csv", None, None), ("released_2DD8_S.csv", None, None)),
+     ("matched_2DD8_S.arm.csv", None, None),
+     ("released_2DD8_S.arm.csv", None, None)),
     ("Measured vs matched lattice", "yeast display against simulation",
      ("alphaseq_measured.csv", "sequence", "label"),
-     ("matched_2DD8_S.csv", None, None)),
+     ("matched_2DD8_S.arm.csv", None, None)),
     ("ProteinGym RASH vs matched", "non-antibody deep mutational scan",
      ("proteingym_RASH_HUMAN_Bandaru_2017.csv", None, None),
-     ("matched_2DD8_S.csv", None, None)),
+     ("matched_2DD8_S.arm.csv", None, None)),
     ("ProteinGym TPK1 vs matched", "non-antibody deep mutational scan",
      ("proteingym_TPK1_HUMAN_Weile_2017.csv", None, None),
-     ("matched_2DD8_S.csv", None, None)),
+     ("matched_2DD8_S.arm.csv", None, None)),
 ]
 AXES = ["size", "structure", "dimension", "noise", "budget"]
 
@@ -42,11 +46,16 @@ def wt_for(fn):
     return LM._read_wt(p) if os.path.exists(p) else None
 
 
+def side(spec):
+    fn, sc, lc = spec
+    p = os.path.join(D, fn)
+    if fn.endswith(".arm.csv"):
+        return LM.arm_from_row(pd.read_csv(p).iloc[0].to_dict())
+    return LM.describe(LM.read_table(p, sc, lc, wt_for(fn)), fn)
+
+
 def run(a, b):
-    da = LM.read_table(os.path.join(D, a[0]), a[1], a[2], wt_for(a[0]))
-    db = LM.read_table(os.path.join(D, b[0]), b[1], b[2], wt_for(b[0]))
-    A = LM.describe(da, a[0])
-    B = LM.describe(db, b[0])
+    A, B = side(a), side(b)
     return LM.compare(A, B), A, B
 
 
@@ -59,9 +68,11 @@ def cell(row):
         return "$" + note.split("x apart")[0].strip() + "\\times$"
     if "difference" in note:
         return note.replace("difference ", "$\\Delta$ ")
+    if row.status == LM.UNAVAILABLE:
+        # 잰 적이 없다는 것을 체크표나 숫자로 적으면 안 된다. 빈칸도 안
+        # 된다 -- 빈칸은 일치로 읽힌다.
+        return "\\textit{not measured}"
     if "cannot be aligned" in note:
-        return "n/a"
-    if "no replicates" in note:
         return "n/a"
     if "only one side" in note:
         return "differs"
@@ -82,9 +93,11 @@ def main():
         cmp_df, A, B = run(a, b)
         d = {r.axis: cell(r) for _, r in cmp_df.iterrows()}
         k = int((cmp_df.status == LM.MISMATCH).sum())
+        u = int((cmp_df.status == LM.UNAVAILABLE).sum())
         n_mis.append(k)
         rows.append((name, sub, d, k))
-        print(f"  {name:<30} {k}/5 어긋남  "
+        print(f"  {name:<30} {k}/5 어긋남"
+              + (f" · {u} 비교불가" if u else "") + "  "
               + " ".join(f"{ax}={d[ax]}" for ax in AXES))
 
     L = [MARK_A, "\\begin{table}[t]",
@@ -98,8 +111,13 @@ def main():
          "the five properties is specific to antibodies. Across all four the "
          "dimension axis is mismatched, by 5.9 to 16.1-fold, while structure "
          "agrees wherever both sides are neighbourhoods. The noise axis is "
-         "reported as unavailable whenever a released file carries one score "
-         "per sequence, which is the usual case.}",
+         "reported as not measured whenever a released file carries one score "
+         "per sequence and the labels are not declared deterministic, which "
+         "is the usual case for a measured assay: one score per variant "
+         "means the replicate spread was averaged away before release, not "
+         "that it was zero. A lattice energy is declared deterministic and "
+         "does have a spread of zero, which is why the first row compares on "
+         "this axis and the last two cannot.}",
          "\\centering", "\\begin{tabular}{@{}llccccc@{}}", "\\toprule",
          "Comparison & & Size & Structure & Dimension & Noise & Budget \\\\",
          "\\midrule"]
@@ -112,6 +130,15 @@ def main():
     tex = "\n".join(L)
 
     s = io.open(MS, encoding="utf-8").read()
+    if MARK_A not in s:
+        # 이 표는 현재 본문에 실리지 않는다. 표시가 없는데도 끝에 꽂아
+        # 넣으면 생성 스크립트가 문서 구조를 바꾸게 된다. 자리가 있을
+        # 때만 갱신하고, 없으면 만든 것을 따로 둔다.
+        alt = "results/libmatch_table.tex"
+        io.open(alt, "w", encoding="utf-8",
+                newline="\n").write(tex + "\n")
+        print(f"wrote {alt}  ({MS} 에 표시가 없어 원고는 그대로 둡니다)")
+        return
     if MARK_A in s:
         i, j = s.index(MARK_A), s.index(MARK_B) + len(MARK_B)
         s = s[:i] + tex + s[j:]
