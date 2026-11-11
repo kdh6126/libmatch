@@ -149,20 +149,16 @@ binds which antigen, and propose a protocol for future comparisons.
 \caption{The design of the comparison, and what it decides.
 \textbf{(a)}, the five properties on which a synthetic benchmark and a
 measured dataset differ at once, and the three arms compared here. The middle
-arm is built in this work: for each of seven lattice antigens, a parent is
-chosen and 6{,}000 variants of it are scored by the same Absolut! binary, so
-the arm takes library size, sequence structure and alignability from the
-measured datasets while its labels remain lattice energies. Each row is
-shaded across the two arms that share a value, which is the whole of the
-design: label source and the absence of assay noise are deliberately
-\emph{not} matched, so that the middle arm differs from the synthetic arm only
-in the three properties that were matched, and no difference between those two
-arms can be attributed to the synthetic label. Each antigen is one independent
-unit; replicate splits and seeds quantify uncertainty within an antigen, never
-across them. \textbf{(b)}, the four differences in results that appear when
-the arms are compared as they stand, and the verdict on each once size,
-structure and alignability are matched; the same four are set out with their
-intervals in Table~\ref{tab:effects}.}\label{fig:overview}
+arm is built here: for each of seven lattice antigens, 6{,}000 variants of a
+chosen parent are scored by the same Absolut! binary. It therefore takes
+library size, structure and alignability from the measured datasets while its
+labels remain lattice energies. Rows are shaded across the arms that share a
+value. Label source and the absence of assay noise are deliberately
+\emph{not} matched, so those two arms differ only in the three matched
+properties and no difference between them can be attributed to the synthetic
+label. \textbf{(b)}, the four differences in results that appear when the
+arms are compared as they stand, and the verdict on each once the three
+properties are matched; Table~\ref{tab:effects} gives their intervals.}\label{fig:overview}
 \end{figure}
 
 \begin{figure}[t]
@@ -857,14 +853,15 @@ measurements
 campaign measurements (\url{https://github.com/A-Alpha-Bio/alphabind}); the
 c-Met panning reads deposited under BioProject PRJNA607865. The analysis
 outputs generated in this work are archived at Zenodo
-\cite{libmatch2026} (\url{https://doi.org/10.5281/zenodo.24067129}): the per-experiment result tables
+\cite{libmatch2026} (\url{https://doi.org/10.5281/zenodo.24093554}): the per-experiment result tables
 from which every figure and every quantity in the text is computed, together
 with a map linking each number to the table and the script behind it.
 
 The matched libraries themselves are not redistributed. Their sequences were
 designed for this study, but their labels are binding energies computed by
-running Absolut!, which is distributed under a non-commercial licence that
-does not grant onward distribution rights for material computed with it. The
+running Absolut!, whose terms govern redistribution of the software but do not
+state whether material computed with it may be redistributed. We therefore
+claim no right that was not granted to us. The
 archive instead carries each library's specification, its per-file SHA-256
 digest, and the script that rebuilds it from a reader's own licensed Absolut!
 download. The energies are deterministic and the sequence sets are drawn from
@@ -872,7 +869,7 @@ fixed seeds, so the digests establish whether a rebuild is identical to the
 file we used. The same applies to the quarantined first version of the
 1NCA\_N library compared in Supplementary Table~S10.
 \item \textbf{Code availability.} All custom code is archived at Zenodo \cite{libmatch2026}
-(\url{https://doi.org/10.5281/zenodo.24067129}) under the MIT licence and
+(\url{https://doi.org/10.5281/zenodo.24093554}) under the MIT licence and
 developed at \url{https://github.com/kdh6126/libmatch}: the 75 scripts on
 which the reported analyses depend, found by dependency closure from the
 figure and table generators rather than selected by hand, and the tool that
@@ -1054,8 +1051,8 @@ Society: Series B \textbf{57}, 289--300 (1995)
 \bibitem{libmatch2026}
 Kim, D., Bae, M.: libmatch: code and result tables for ``Library size and
 sequence relatedness confound comparisons between synthetic benchmarks and
-experimental antibody data'' (v1.0.6). Zenodo (2026).
-\url{https://doi.org/10.5281/zenodo.24067129}
+experimental antibody data'' (v1.0.7). Zenodo (2026).
+\url{https://doi.org/10.5281/zenodo.24093554}
 
 \end{thebibliography}
 
