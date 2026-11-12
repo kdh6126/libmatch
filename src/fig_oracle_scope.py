@@ -83,7 +83,7 @@ def ecdf_vs_uniform(ax, x01, colour, label):
     x = np.sort(np.asarray(x01, float))
     y = np.arange(1, len(x) + 1) / len(x)
     ax.plot([0, 1], [0, 1], color=MUTED, lw=0.8, ls=(0, (3, 2)),
-            label="uniform (no information)")
+            label="uniform")
     ax.step(np.concatenate([[0], x, [1]]),
             np.concatenate([[0], y, [1]]), where="post",
             color=colour, lw=1.4, label=label)
@@ -95,6 +95,57 @@ def ecdf_vs_uniform(ax, x01, colour, label):
     ax.set_axisbelow(True)
 
 
+def legend_inside(ax):
+    """범례를 패널 안에 둔다.
+
+    긴 이름을 그대로 두면 범례가 패널보다 넓어져 옆 패널의 축 이름을
+    덮는다. 이 그림이 실제로 그랬다 -- (a)의 범례가 (b)의 "Cumulative
+    fraction" 을, (b)의 범례가 (c)의 "Contact overlap (Jaccard)" 를 덮고
+    있었다. matplotlib 은 범례를 자르지도 경고하지도 않는다.
+
+    이름과 표본 수를 한 줄에 같이 넣으면 어떤 글씨 크기로도 들어가지
+    않는다. 네 패널이 가로로 서 있어 패널 하나가 70pt 가 채 안 되기
+    때문이다. 그래서 이름만 범례에 두고 수는 따로 적는다(count).
+    """
+    ax.legend(loc="upper left", frameon=False, fontsize=6.2,
+              handlelength=1.6, handletextpad=0.5, borderpad=0.15,
+              labelspacing=0.3)
+
+
+def count(ax, text):
+    """표본 수를 오른쪽 아래에 적는다.
+
+    ECDF 는 왼쪽 아래에서 오른쪽 위로 오르므로 오른쪽 아래 구석은 늘
+    비어 있다. 범례에서 덜어낸 수를 그리로 보낸다.
+    """
+    ax.text(0.97, 0.03, text, transform=ax.transAxes, ha="right",
+            va="bottom", fontsize=6.0, color=MUTED)
+
+
+def check_inside(fig, axes):
+    """패널 안에 적은 글이 정말 패널 안에 있는가.
+
+    글이 패널 밖으로 나가도 matplotlib 은 아무 말도 하지 않는다. 옆
+    패널의 축 이름 위에 얹히고 나서야 사람 눈에 띄고, 그때는 이미 PDF 가
+    나간 뒤다. 가로로 넘치는 것만 본다 -- 패널 글자와 중앙값 꼬리표는
+    일부러 위아래로 나가 있다.
+    """
+    fig.canvas.draw()
+    bad = []
+    for ax, L in zip(axes, "abcd"):
+        box = ax.get_window_extent()
+        for a in [ax.get_legend()] + list(ax.texts):
+            if a is None:
+                continue
+            e = a.get_window_extent()
+            out = max(box.x0 - e.x0, e.x1 - box.x1)
+            if out > 1.0:
+                bad.append("(%s) 글이 패널 밖으로 %.0fpx 나갑니다: %r"
+                           % (L, out, getattr(a, "get_text",
+                                              lambda: "legend")()[:40]))
+    return bad
+
+
 def main():
     ok, rank, epi = load()
     os.makedirs(OUT, exist_ok=True)
@@ -103,22 +154,20 @@ def main():
 
     # ---- (a) energy percentile of the cognate antibody
     ax = axes[0]
-    ecdf_vs_uniform(ax, ok.pct_better / 100, BLUE,
-                    f"cognate CDRH3, {len(ok)} antigens")
+    ecdf_vs_uniform(ax, ok.pct_better / 100, BLUE, "cognate CDRH3")
     ax.set_xlabel("Energy percentile of\nthe cognate CDRH3")
     ax.set_ylabel("Cumulative fraction")
-    ax.legend(loc="upper left", frameon=False, fontsize=6.2,
-              handlelength=1.6, borderpad=0.2)
+    legend_inside(ax)
+    count(ax, f"n = {len(ok)} antigens")
     panel(ax, "a", drop=0.46)
 
     # ---- (b) rank of the own antigen among the others
     ax = axes[1]
-    ecdf_vs_uniform(ax, rank.rank01, VERM,
-                    f"own antigen, {len(rank)} antibodies")
+    ecdf_vs_uniform(ax, rank.rank01, VERM, "own antigen")
     ax.set_xlabel("Rank of the cognate\nantigen among all others")
     ax.set_ylabel("Cumulative fraction")
-    ax.legend(loc="upper left", frameon=False, fontsize=6.2,
-              handlelength=1.6, borderpad=0.2)
+    legend_inside(ax)
+    count(ax, f"n = {len(rank)} antibodies")
     panel(ax, "b", drop=0.46)
 
     # ---- (c) the site is a property of the antigen
@@ -158,8 +207,10 @@ def main():
         ax.plot(x, pair.weak, "s-", color=VERM, lw=1.0, ms=4,
                 label="weak arm")
         ax.axhline(0.5, color=MUTED, lw=0.8, ls=(0, (3, 2)), zorder=1)
-        ax.text(-0.45, 0.5, "chance ", color=MUTED, fontsize=6.0,
-                va="bottom", ha="left")
+        # x 는 패널 비율, y 는 자료값. 자료 좌표로 적으면 항원 수가
+        # 달라질 때마다 글이 패널 밖으로 밀려난다 -- 실제로 그랬다.
+        ax.text(0.02, 0.5, "chance", transform=ax.get_yaxis_transform(),
+                color=MUTED, fontsize=6.0, va="bottom", ha="left")
         ax.set_xticks(x)
         ax.set_xticklabels([a.split("_")[0] for a in pair.antigen],
                            fontsize=5.8, rotation=90)
@@ -170,6 +221,14 @@ def main():
                   handlelength=1.6, borderpad=0.2)
         ygrid(ax)
     panel(ax, "d", drop=0.46)
+
+    miss = check_inside(fig, axes)
+    if miss:
+        for m in miss:
+            print("  " + m)
+        sys.exit("패널 밖으로 나간 글이 있습니다. 줄이거나 자리를 옮긴 뒤 "
+                 "다시 그리십시오 -- 네 패널이 가로로 서 있어 넘친 글은 "
+                 "옆 패널의 축 이름 위에 얹힙니다.")
 
     p = f"{OUT}/F7.png"
     save_fixed_width(fig, p)

@@ -32,11 +32,11 @@ d82a2aa8dbf49ac8df160e0e00261a5ee35ae0f552e86de76c11fd12519eb2bf      152674  ma
 6ed2d72ca8423c92872faa80ed3f258a80c245e033eeef7763c7535add73c7da      406533  manuscript/figs/F4.png
 c7a671d1b5707ffab14c737bb49dc963e3847837b7d576e7565bea251ba8a7da      328618  manuscript/figs/F5.png
 6075a2c4b4da3e5d6815bd9faee43a0e2900addbe8a0275eb87b11c73ca3f29a      193698  manuscript/figs/F6.png
-9aa11d47236b542d0a9a723b22aff6ac8b39a10b3e53888d808dd08d04a19ba0      332795  manuscript/figs/F7.png
+1cd76f7c80147e30dd3a386fe24be6e42e1d10c0c107ecb1caef9e1b8d2d0d1f      332496  manuscript/figs/F7.png
 3d186324fa06f3cded953ef6251ae951d34284426cc3f0cb07cb7c284181556c      329211  manuscript/figs/F9.png
 6ea62698a12526ec1abb7aefa0a6f628e31cfafda7470dc4d47a7f884e1c2950      278860  manuscript/figs/SFig1.png
 4f39c416d1b7dc626c1257af93d867d78e0cbaf880f8404ecb29129f4a501b90       60937  manuscript/manuscript.tex
-83385b2bd8e53c7c8ea655a30667823de916f3204922ecdb73914ac7153fafe3       60386  manuscript/supplementary_information.tex
+a0212ab0de9b13e344801716503926a8e1722599ff6f1dace8d66f96a26cea6f       61110  manuscript/supplementary_information.tex
 508f9fb5c1ad74e041d52085ff81b8970274cd934ee17160cb4a42249c5b8ff3         579  requirements.txt
 583395ba7a48ff5a0e5f4bf09f1c19dbc9653338c1a7a02117ef777797bb3455        1021  results/exp12_featurisation.csv
 1583abcea86211389977c458bd1f1ea797d6e195eeff7b8f771ef88d0f345c64       19855  results/exp16_model_zoo.csv
@@ -143,7 +143,7 @@ b04170eecf290e2b9f0e45ce634718465455205c7ce612946bc46e046dd5e24f        6102  sr
 8c2a1926f50d95dea93958cdfba1e7ba8c580b60cc20e1623cb3128939864e68       12021  src/fig_axes_schematic.py
 c4e59dbe445674cf5dd981880a70aef64fe58a2f78260ccae2712c9f8a270937       10684  src/fig_binding.py
 7558e70b07d397a7b4d5b76c1355f08858196020f904550a2733f1902136c04d        8064  src/fig_matching_limits.py
-a9b2e03b82d2c955e3552780d95e667d42d3722e2b6cc165bb7c020913136910        7172  src/fig_oracle_scope.py
+1cc4231893fbd11e43d943561a2193285cb7a3844c3b1140a73197955296ed26        9769  src/fig_oracle_scope.py
 971bb4ecfccf3f049c76414efceba42c6cec9c4dfece7052a2f85ef925f5c98d        9410  src/fig_overview.py
 969510f676c3816f7211a0e273379fbe283f48f78ca7a99dd6705cb234e50099        4850  src/fig_zoo_transfer.py
 3da1c735d54a13e2c852fe83bfcc24a356f6475ff8853d6622124eb977abe8ed       21904  src/figs_journal.py
