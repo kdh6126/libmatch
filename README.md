@@ -29,7 +29,7 @@ Each number in the article and its supplement comes from a table in
 `results/`, written by one script in `src/`. **[REPRODUCTION.md](REPRODUCTION.md)**
 maps every figure, table and check to the script that produced it, lists the
 dependency order, and records the environment the bundle was verified in. It
-is generated from the source, so it cannot drift from the code.
+is generated from the source, so it cannot drift from the code. Three figures -- Figure 1, Supplementary Figure S2 and Supplementary Figure S6 -- were laid out by hand from what their script draws: fonts, row labels and column widths were corrected in PowerPoint, and the PNG in `manuscript/figs/` is the published asset. Re-running those scripts reproduces what the figures show, not the file.
 
 ## Layout
 
